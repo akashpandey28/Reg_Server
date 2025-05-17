@@ -51,10 +51,11 @@ Start it with:
 docker-compose up -d
 ```
 
-Ensure Ollama is running on your host machine with the embedding model loaded:
+Ensure Ollama is pulled on your host machine with the embedding model loaded:
 
 ```bash
-ollama run nomic-embed-text
+ollama pull nomic-embed-text
+ollama pull deepseek-r1:7b
 ```
 
 ---
