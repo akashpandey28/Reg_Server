@@ -1,0 +1,10 @@
+fastapi==0.104.1
+uvicorn==0.23.2
+numpy==1.24.4
+langchain==0.3.25          # aligns langchain-core≥0.3.60
+langchain-ollama==0.3.3
+langchain-community         # contains document loaders & vectorstores
+langchain-text-splitters    # for text splitting
+weaviate-client==4.5.1
+pypdf==3.17.1
+python-multipart==0.0.9
