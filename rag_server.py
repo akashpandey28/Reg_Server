@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, Form
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 import os, shutil
@@ -66,6 +67,7 @@ class QueryRequest(BaseModel):
     collection_name: str
     document_type: str
     index_id: str
+
 
 @app.post("/upload")
 async def upload_pdf(
@@ -173,6 +175,8 @@ async def query_documents(req: QueryRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+app.mount("/", StaticFiles(directory="./", html=True), name="index.html")
 
 if __name__ == "__main__":
     import uvicorn
