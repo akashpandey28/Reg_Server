@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Document Interface</title>
+    <!-- Import Marked for Markdown parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <!-- Import Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3a86ff;
+            --secondary-color: #8ecae6;
+            --accent-color: #219ebc;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+            --text-color: #212529;
+            --light-text: #6c757d;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--light-bg);
+            padding: var(--spacing-lg);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .app-title {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            color: var(--primary-color);
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .card-title {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title svg {
+            margin-right: var(--spacing-sm);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+        }
+
+        .form-group .description {
+            font-size: 0.85rem;
+            color: var(--light-text);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            background-color: #fff;
+            transition: border-color 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .btn {
+            display: inline-block;
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #2a75e6;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            border: 1px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            overflow-y: auto;
+            background-color: #fff;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .chat-input {
+            flex-grow: 1;
+        }
+
+        .message {
+            margin-bottom: var(--spacing-md);
+            max-width: 80%;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            position: relative;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--primary-color);
+            color: white;
+            margin-left: auto;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: #f1f3f5;
+            color: var(--text-color);
+        }
+
+        .message-header {
+            font-weight: bold;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .think-section {
+            background-color: #f8f9fa;
+            border-left: 3px solid #dee2e6;
+            padding: var(--spacing-md);
+            margin: var(--spacing-md) 0;
+            color: var(--light-text);
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .think-section.collapsed {
+            max-height: 40px;
+            cursor: pointer;
+        }
+
+        .think-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+            cursor: pointer;
+        }
+
+        .think-toggle {
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .status {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius);
+        }
+
+        .status-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            color: var(--light-text);
+        }
+
+        .loading-dots {
+            display: inline-flex;
+            margin-left: var(--spacing-sm);
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--light-text);
+            margin: 0 4px;
+            animation: loading-dot-animation 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes loading-dot-animation {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Markdown styling */
+        .markdown-content {
+            line-height: 1.6;
+        }
+
+        .markdown-content h1, 
+        .markdown-content h2, 
+        .markdown-content h3, 
+        .markdown-content h4, 
+        .markdown-content h5, 
+        .markdown-content h6 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        .markdown-content p {
+            margin-bottom: 1em;
+        }
+
+        .markdown-content ul, 
+        .markdown-content ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+
+        .markdown-content pre {
+            background-color: #f8f9fa;
+            padding: 1em;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+
+        .markdown-content code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background-color: #f8f9fa;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+        }
+
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .markdown-content blockquote {
+            border-left: 4px solid #e9ecef;
+            padding-left: 1em;
+            margin-left: 0;
+            color: var(--light-text);
+        }
+
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 1em;
+        }
+
+        .markdown-content th, 
+        .markdown-content td {
+            padding: 0.5em;
+            border: 1px solid #e9ecef;
+        }
+
+        .markdown-content th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="app-title">RAG Document Interface</h1>
+        
+        <!-- Upload Section -->
+        <div class="card">
+            <h2 class="card-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 15V3M12 3L8 7M12 3L16 7M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Upload Document
+            </h2>
+            
+            <form id="uploadForm" class="upload-form">
+                <div class="form-group">
+                    <label for="fileInput">PDF Document</label>
+                    <div class="description">Upload a PDF file to be indexed for RAG processing</div>
+                    <input type="file" id="fileInput" class="form-control" accept=".pdf" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="indexId">Index ID</label>
+                    <div class="description">Unique identifier for the vector index</div>
+                    <input type="text" id="indexId" class="form-control" placeholder="Index ID" value="general" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="collectionName">Collection Name</label>
+                    <div class="description">Name of the collection where document embeddings will be stored</div>
+                    <input type="text" id="collectionName" class="form-control" placeholder="Collection Name" value="ASPNetDocs" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="documentType">Document Type</label>
+                    <div class="description">Type or category of the document for better context retrieval</div>
+                    <input type="text" id="documentType" class="form-control" placeholder="Document Type" value="documentation" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Upload PDF</button>
+            </form>
+            
+            <div id="uploadStatus" class="status"></div>
+        </div>
+        
+        <!-- Chat Interface -->
+        <div class="card">
+            <h2 class="card-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 11.5C21.0034 12.8199 20.6951 14.1219 20.1 15.3C19.3944 16.7118 18.3098 17.8992 16.9674 18.7293C15.6251 19.5594 14.0782 19.9994 12.5 20C11.1801 20.0034 9.87812 19.6951 8.7 19.1L3 21L4.9 15.3C4.30493 14.1219 3.99656 12.8199 4 11.5C4.00061 9.92179 4.44061 8.37488 5.27072 7.03258C6.10083 5.69028 7.28825 4.6056 8.7 3.9C9.87812 3.30493 11.1801 2.99656 12.5 3H13C15.0843 3.11499 17.053 3.99476 18.5291 5.47086C20.0052 6.94695 20.885 8.91565 21 11V11.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Chat Interface
+            </h2>
+            
+            <div class="chat-container">
+                <div class="chat-history" id="chatHistory"></div>
+                
+                <div class="chat-input-container">
+                    <input type="text" id="questionInput" class="form-control chat-input" placeholder="Type your question...">
+                    <button onclick="chatModule.sendQuestion()" class="btn btn-primary">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Module - Handles all API interactions
+        const apiModule = (function() {
+            const BASE_URL = 'http://localhost:8000';
+            
+            return {
+                async uploadDocument(formData) {
+                    try {
+                        const response = await fetch(`${BASE_URL}/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        return await response.json();
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        throw new Error('Failed to upload document');
+                    }
+                },
+                
+                async queryDocument(question, indexId, collectionName, documentType) {
+                    try {
+                        const response = await fetch(`${BASE_URL}/query`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                question: question,
+                                index_id: indexId,
+                                collection_name: collectionName,
+                                document_type: documentType
+                            })
+                        });
+                        
+                        return response.body.getReader();
+                    } catch (error) {
+                        console.error('Query error:', error);
+                        throw new Error('Failed to process query');
+                    }
+                }
+            };
+        })();
+        
+        // UI Module - Handles UI updates and rendering
+        const uiModule = (function() {
+            const createMessageElement = (isUser, content) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+                
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'message-header';
+                headerDiv.textContent = isUser ? 'You' : 'Bot';
+                
+                messageDiv.appendChild(headerDiv);
+                
+                if (isUser) {
+                    const contentDiv = document.createElement('div');
+                    contentDiv.textContent = content;
+                    messageDiv.appendChild(contentDiv);
+                } else {
+                    // This will be filled later for bot messages
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'bot-content';
+                    messageDiv.appendChild(contentDiv);
+                    
+                    // Add loading indicator
+                    const loadingDiv = document.createElement('div');
+                    loadingDiv.className = 'loading-indicator';
+                    loadingDiv.innerHTML = 'Thinking<div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
+                    contentDiv.appendChild(loadingDiv);
+                }
+                
+                return messageDiv;
+            };
+            
+            const updateBotMessage = (messageElement, content, isThinking = false, isComplete = false) => {
+                const contentDiv = messageElement.querySelector('.bot-content');
+                
+                // Remove loading indicator if present
+                const loadingIndicator = contentDiv.querySelector('.loading-indicator');
+                if (loadingIndicator && isComplete) {
+                    contentDiv.removeChild(loadingIndicator);
+                }
+                
+                if (isThinking) {
+                    // Check if think section already exists
+                    let thinkSection = contentDiv.querySelector('.think-section');
+                    
+                    if (!thinkSection) {
+                        // Create the think section
+                        thinkSection = document.createElement('div');
+                        thinkSection.className = 'think-section collapsed';
+                        
+                        const thinkHeader = document.createElement('div');
+                        thinkHeader.className = 'think-header';
+                        thinkHeader.innerHTML = '<span>Thinking process</span><span class="think-toggle">Show more</span>';
+                        
+                        const thinkContent = document.createElement('div');
+                        thinkContent.className = 'think-content';
+                        
+                        thinkSection.appendChild(thinkHeader);
+                        thinkSection.appendChild(thinkContent);
+                        contentDiv.appendChild(thinkSection);
+                        
+                        // Add click event for collapsing/expanding
+                        thinkHeader.addEventListener('click', () => {
+                            const isCollapsed = thinkSection.classList.contains('collapsed');
+                            
+                            if (isCollapsed) {
+                                thinkSection.classList.remove('collapsed');
+                                thinkHeader.querySelector('.think-toggle').textContent = 'Show less';
+                            } else {
+                                thinkSection.classList.add('collapsed');
+                                thinkHeader.querySelector('.think-toggle').textContent = 'Show more';
+                            }
+                        });
+                    }
+                    
+                    // Update the think content
+                    const thinkContent = thinkSection.querySelector('.think-content');
+                    thinkContent.textContent += content;
+                } else {
+                    // Check if markdown content already exists
+                    let markdownContent = contentDiv.querySelector('.markdown-content');
+                    
+                    if (!markdownContent) {
+                        markdownContent = document.createElement('div');
+                        markdownContent.className = 'markdown-content';
+                        contentDiv.appendChild(markdownContent);
+                    }
+                    
+                    // Update the markdown content
+                    markdownContent.innerHTML = marked.parse(content);
+                    
+                    // Apply syntax highlighting to code blocks
+                    markdownContent.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                }
+            };
+            
+            return {
+                addUserMessage(content) {
+                    const chatHistory = document.getElementById('chatHistory');
+                    const messageElement = createMessageElement(true, content);
+                    chatHistory.appendChild(messageElement);
+                    
+                    // Scroll to bottom
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                    
+                    return messageElement;
+                },
+                
+                addBotMessage() {
+                    const chatHistory = document.getElementById('chatHistory');
+                    const messageElement = createMessageElement(false);
+                    chatHistory.appendChild(messageElement);
+                    
+                    // Scroll to bottom
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                    
+                    return messageElement;
+                },
+                
+                updateBotMessage,
+                
+                showUploadStatus(message, isError = false) {
+                    const statusDiv = document.getElementById('uploadStatus');
+                    statusDiv.textContent = message;
+                    statusDiv.className = `status ${isError ? 'status-error' : 'status-success'}`;
+                },
+                
+                clearQuestion() {
+                    document.getElementById('questionInput').value = '';
+                },
+                
+                scrollChatToBottom() {
+                    const chatHistory = document.getElementById('chatHistory');
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                }
+            };
+        })();
+        
+        // Upload Module - Handles document uploads
+        const uploadModule = (function() {
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData();
+                formData.append('file', document.getElementById('fileInput').files[0]);
+                formData.append('index_id', document.getElementById('indexId').value);
+                formData.append('collection_name', document.getElementById('collectionName').value);
+                formData.append('document_type', document.getElementById('documentType').value);
+                
+                try {
+                    const result = await apiModule.uploadDocument(formData);
+                    uiModule.showUploadStatus(result.message);
+                } catch (error) {
+                    uiModule.showUploadStatus(error.message, true);
+                }
+            };
+            
+            const init = () => {
+                document.getElementById('uploadForm').addEventListener('submit', handleSubmit);
+            };
+            
+            return {
+                init
+            };
+        })();
+        
+        // Chat Module - Handles chat functionality
+        const chatModule = (function() {
+            const processStreamResponse = async (reader, botMessageElement) => {
+                const decoder = new TextDecoder();
+                let fullResponse = '';
+                let thinkContent = '';
+                let mainContent = '';
+                let isThinking = false;
+                
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\n\n').filter(line => line.startsWith('data: '));
+                        
+                        lines.forEach(line => {
+                            const text = line.replace(/^data: /, '').trim();
+                            if (text) {
+                                fullResponse += text;
+                                
+                                // Check for <think> tag
+                                if (text.includes('<think>')) {
+                                    isThinking = true;
+                                    thinkContent = '';
+                                } else if (text.includes('</think>')) {
+                                    isThinking = false;
+                                    uiModule.updateBotMessage(botMessageElement, thinkContent, true);
+                                } else if (isThinking) {
+                                    thinkContent += text;
+                                    uiModule.updateBotMessage(botMessageElement, thinkContent, true);
+                                } else {
+                                    mainContent += text;
+                                    uiModule.updateBotMessage(botMessageElement, mainContent, false);
+                                }
+                                
+                                uiModule.scrollChatToBottom();
+                            }
+                        });
+                    }
+                    
+                    // Mark as complete to remove loading indicator
+                    uiModule.updateBotMessage(botMessageElement, '', false, true);
+                    
+                    // If no think content or main content was processed, display the full response as main content
+                    if (!thinkContent && !mainContent) {
+                        uiModule.updateBotMessage(botMessageElement, fullResponse, false, true);
+                    }
+                } catch (error) {
+                    console.error('Stream processing error:', error);
+                    uiModule.updateBotMessage(botMessageElement, 'Error occurred while processing response', false, true);
+                }
+            };
+            
+            const sendQuestion = async () => {
+                const questionInput = document.getElementById('questionInput');
+                const question = questionInput.value.trim();
+                
+                if (!question) return;
+                
+                // Add user question to chat
+                uiModule.addUserMessage(question);
+                
+                // Add bot response placeholder
+                const botMessageElement = uiModule.addBotMessage();
+                
+                try {
+                    const reader = await apiModule.queryDocument(
+                        question,
+                        document.getElementById('indexId').value,
+                        document.getElementById('collectionName').value,
+                        document.getElementById('documentType').value
+                    );
+                    
+                    await processStreamResponse(reader, botMessageElement);
+                } catch (error) {
+                    uiModule.updateBotMessage(botMessageElement, 'Error occurred while processing your question', false, true);
+                }
+                
+                uiModule.clearQuestion();
+            };
+            
+            const init = () => {
+                // Add event listener for Enter key in the question input
+                document.getElementById('questionInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendQuestion();
+                    }
+                });
+            };
+            
+            return {
+                init,
+                sendQuestion
+            };
+        })();
+        
+        // Initialize all modules
+        document.addEventListener('DOMContentLoaded', () => {
+            uploadModule.init();
+            chatModule.init();
+        });
+    </script>
+</body>
+</html>
