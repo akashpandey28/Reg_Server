@@ -34,7 +34,7 @@ app = FastAPI()
 # Configuration
 WEAVIATE_URL  = os.getenv("WEAVIATE_URL", "http://localhost:8080")
 EMBEDDING_MODEL = "nomic-embed-text"
-LLM_MODEL       = "deepseek-r1:7b"
+LLM_MODEL       = "qwen3:8b"
 CHUNK_SIZE      = 1024
 CHUNK_OVERLAP   = 128
 

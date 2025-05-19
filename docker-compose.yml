@@ -14,6 +14,25 @@ services:
       OLLAMA_API_HOST: 'host.docker.internal:11434'
     volumes:
       - weaviate_data:/var/lib/weaviate
+    healthcheck:
+      test: wget --no-verbose --tries=3 --spider http://localhost:8080/v1/.well-known/ready || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 10s 
+      
+  rag-server:
+    build: .
+    ports:
+      - "8000:8000" 
+    environment:
+      OLLAMA_HOST: "host.docker.internal:11434"
+      WEAVIATE_URL: "http://weaviate:8080"
+    depends_on:
+      weaviate:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 volumes:
   weaviate_data:
-
