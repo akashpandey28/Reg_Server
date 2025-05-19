@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# ollama
-=======
 # 🧠 RAG Server Setup Guide
 
 This guide walks you through setting up a Retrieval-Augmented Generation (RAG) server using FastAPI, Weaviate, LangChain, and Ollama.
@@ -152,4 +149,3 @@ Returns:
 * By default, embeddings are stored in Weaviate under the class `Document`.
 
 
->>>>>>> 75bb3a3 (Added docs)
