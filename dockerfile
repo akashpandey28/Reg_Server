@@ -27,5 +27,7 @@ COPY client/ ./client/
 # Expose the application port
 EXPOSE 8000
 
+ENV PYTHONPATH=/app/src
+
 # Run the application
 CMD ["python", "-m", "src.main"]

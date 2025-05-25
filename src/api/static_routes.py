@@ -1,7 +1,6 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-import os
 
 router = APIRouter(tags=["Static Content"])
 

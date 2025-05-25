@@ -1,6 +1,5 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
-from typing import List
 
 from services.document_service import DocumentService
 from models.schemas import FilesList, FileInfo

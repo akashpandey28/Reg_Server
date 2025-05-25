@@ -11,7 +11,7 @@ services:
       CLUSTER_HOSTNAME: 'node1'
       ENABLE_MODULES: 'text2vec-ollama' 
       DEFAULT_VECTORIZER_MODULE: 'text2vec-ollama'
-      OLLAMA_API_HOST: 'host.docker.internal:11434'
+      OLLAMA_API_ENDPOINT: 'http://host.docker.internal:11434' 
     volumes:
       - weaviate_data:/var/lib/weaviate
     healthcheck:
@@ -20,14 +20,19 @@ services:
       timeout: 10s
       retries: 5
       start_period: 10s 
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
       
   rag-server:
     build: .
     ports:
-      - "8000:8000" 
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./client:/app/client
     environment:
-      OLLAMA_HOST: "host.docker.internal:11434"
-      WEAVIATE_URL: "http://weaviate:8080"
+      OLLAMA_HOST: 'http://host.docker.internal:11434'
+      WEAVIATE_URL: 'http://weaviate:8080'
     depends_on:
       weaviate:
         condition: service_healthy

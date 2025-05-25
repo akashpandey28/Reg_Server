@@ -28,7 +28,7 @@ class QueryService:
             model=config.LLM_MODEL, 
             temperature=temperature,
             max_tokens=max_tokens,
-            streaming=True
+            streaming=True,
         )
         
         # Build prompt template

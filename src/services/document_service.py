@@ -18,20 +18,16 @@ class DocumentService:
         index_id: str
     ) -> Dict[str, Any]:
         """
-        Process and upload a document to Weaviate
+        Process and upload a document to Weaviate using v4 client
         """
-        # Initialize collection if it doesn't exist
         weaviate_client.init_collection(collection_name)
-        
-        # Save file temporarily
         temp_dir = "./temp"
         os.makedirs(temp_dir, exist_ok=True)
         path = os.path.join(temp_dir, file.filename)
-        
+
         with open(path, "wb") as buf:
             shutil.copyfileobj(file.file, buf)
         
-        # Load and process document
         loader = PyPDFLoader(path)
         pages = loader.load()
         
@@ -42,31 +38,32 @@ class DocumentService:
         
         docs = splitter.split_documents(pages)
         
-        # Add metadata to all documents
+        collection = weaviate_client.client.collections.get(collection_name)
+        
         for doc in docs:
-            doc.metadata["document_type"] = document_type
-            doc.metadata["index_id"] = index_id
-            doc.metadata["filename"] = file.filename
+            # Generate embedding for each document chunk
+            embedding = weaviate_client.embeddings.embed_query(doc.page_content)
+            
+            # Insert document using v4 native client
+            collection.data.insert(
+                properties={
+                    "text": doc.page_content,
+                    "source": doc.metadata.get("source", ""),
+                    "page": doc.metadata.get("page", 0),
+                    "document_type": document_type,
+                    "index_id": index_id,
+                    "filename": file.filename
+                },
+                vector=embedding
+            )
         
-        # Store in Weaviate
-        vectorstore = Weaviate(
-            client=weaviate_client.client,
-            index_name=collection_name,
-            text_key="text",
-            embedding=weaviate_client.embeddings,
-            by_text=False
-        )
-        
-        vectorstore.add_documents(docs)
-        
-        # Store metadata
         weaviate_client.store_metadata(collection_name, document_type, index_id, file.filename)
         
-        # Clean up temporary file
         os.remove(path)
         
         return {"message": f"Stored {len(docs)} chunks in {collection_name}", "filename": file.filename}
-    
+
+
     @staticmethod
     def get_collections() -> List[str]:
         """Get all collections"""
