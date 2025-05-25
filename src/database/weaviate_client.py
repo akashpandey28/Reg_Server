@@ -148,7 +148,6 @@ class WeaviateClient:
         if not self.client.collections.exists(collection_name):
             return None
 
-        # Create vector store instance
         vectorstore = Weaviate(
             client=self.client,
             index_name=collection_name,
@@ -156,7 +155,6 @@ class WeaviateClient:
             embedding=self.embeddings
         )
 
-        # Build v4 filter
         query_filter = Filter.all_of([
             Filter.by_property("document_type").equal(document_type),
             Filter.by_property("index_id").equal(index_id)
@@ -168,5 +166,4 @@ class WeaviateClient:
             search_kwargs={"k": k, "filters": query_filter}
         )
 
-# Create a singleton instance
 weaviate_client = WeaviateClient()
