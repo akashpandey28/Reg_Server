@@ -2,7 +2,7 @@
 import os
 
 # Weaviate configuration
-WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://host.docker.internal:11434")
 
 # Ollama configuration

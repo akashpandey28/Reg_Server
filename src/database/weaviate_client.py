@@ -4,7 +4,9 @@ from weaviate.classes.query import Filter
 from langchain_ollama import OllamaEmbeddings
 import config
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional
+from langchain_weaviate.vectorstores import WeaviateVectorStore as Weaviate
+from langchain_core.retrievers import BaseRetriever
 
 class WeaviateClient:
     def __init__(self):
@@ -137,6 +139,32 @@ class WeaviateClient:
         """Ensure proper connection cleanup"""
         if self.client.is_connected():
             self.client.close()
+    
+    
+    def get_retriever(self, collection_name: str, document_type: str, index_id: str, k: int = 10) -> Optional[BaseRetriever]:
+        """
+        Get configured retriever with proper filters
+        """
+        if not self.client.collections.exists(collection_name):
+            return None
+
+        # Create vector store instance
+        vectorstore = Weaviate(
+            client=self.client,
+            index_name=collection_name,
+            text_key="text",
+            embedding=self.embeddings
+        )
+
+        # Build v4 filter
+        query_filter = Filter.all_of(
+            Filter.by_property("document_type").equal(document_type),
+            Filter.by_property("index_id").equal(index_id)
+        )
+
+        return vectorstore.as_retriever(
+            search_kwargs={"k": k, "filter": query_filter}
+        )
 
 # Create a singleton instance
 weaviate_client = WeaviateClient()

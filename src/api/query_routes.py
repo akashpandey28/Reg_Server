@@ -1,10 +1,25 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from services.document_service import DocumentService
-from models.schemas import FilesList, FileInfo
+from services.query_service import QueryService
+from models.schemas import FilesList, FileInfo, QueryRequest
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
+
+
+@router.post("/query")
+async def query_documents(query_request: QueryRequest):
+    """
+    Query documents using the provided parameters.
+    """
+    try:
+        return StreamingResponse(
+            QueryService.query_documents(query_request),
+            media_type="text/plain"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/upload")
 async def upload_pdf(
