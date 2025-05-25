@@ -20,8 +20,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 10s 
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
       
   rag-server:
     build: .
@@ -36,8 +34,5 @@ services:
     depends_on:
       weaviate:
         condition: service_healthy
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
 volumes:
   weaviate_data:

@@ -58,10 +58,6 @@ class WeaviateClient:
                     Property(name="filename", data_type=DataType.TEXT)
                 ],
                 vectorizer_config=Configure.Vectorizer.none(),
-                vector_index_config=Configure.VectorIndex.hnsw(
-                    distance_metric="cosine",
-                    quantizer=Configure.VectorIndex.Quantizer.bq()
-                )
             )
     
     
@@ -82,8 +78,11 @@ class WeaviateClient:
     
     def get_all_collections(self) -> List[str]:
         """Get collections using v4 collection interface"""
+        print("Fetching all collections...")
+        collections = self.client.collections.list_all().values()  # Get collection objects
+        print("Available collections:", collections)
         return [
-            collection.name for collection in self.client.collections.list_all()
+            collection.name for collection in collections
             if collection.name != config.METADATA_COLLECTION
         ]
     
@@ -118,11 +117,11 @@ class WeaviateClient:
         
         response = metadata_collection.query.fetch_objects(
             return_properties=["filename", "upload_date"],
-            filters=Filter.all_of(
+            filters=Filter.all_of([
                 Filter.by_property("collection_name").equal(collection_name),
                 Filter.by_property("document_type").equal(document_type),
                 Filter.by_property("index_id").equal(index_id)
-            )
+            ])
         )
         
         return [{
