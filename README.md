@@ -3,19 +3,6 @@
 This guide walks you through setting up a Retrieval-Augmented Generation (RAG) server using FastAPI, Weaviate, LangChain, and Ollama.
 
 
-## 🗂️ Project Structure
-
-```
-rag-project/
-│
-├── docker-compose.yml         # Weaviate vector store setup
-├── rag_server.py              # FastAPI app (entry point)
-├── requirements.txt           # Python dependencies
-└── temp/                      # Temporary PDF storage
-```
-
----
-
 ## 🚀 Step 1: Start Weaviate with Ollama Module
 
 # Ollama config (Windows)
