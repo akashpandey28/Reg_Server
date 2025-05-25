@@ -48,7 +48,7 @@ class QueryService:
 
             retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
-            async for chunk in retrieval_chain.stream({"input": query_request.question}):
+            async for chunk in retrieval_chain.astream({"input": query_request.question}):
                 yield chunk.get("answer", "") if isinstance(chunk, dict) else chunk
 
         except Exception as e:

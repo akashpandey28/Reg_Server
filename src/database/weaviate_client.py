@@ -157,13 +157,15 @@ class WeaviateClient:
         )
 
         # Build v4 filter
-        query_filter = Filter.all_of(
+        query_filter = Filter.all_of([
             Filter.by_property("document_type").equal(document_type),
             Filter.by_property("index_id").equal(index_id)
-        )
+        ])
+
 
         return vectorstore.as_retriever(
-            search_kwargs={"k": k, "filter": query_filter}
+            search_type="similarity",
+            search_kwargs={"k": k, "filters": query_filter}
         )
 
 # Create a singleton instance
